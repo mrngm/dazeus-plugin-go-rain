@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 )
+
 func ShortDate(m Meteo) string {
 	return strings.TrimSuffix(m.Astro.Datum, "T00:00:00")
 }
@@ -33,4 +34,8 @@ func Moon(m Meteo) string {
 
 func HereComesTheSun(m Meteo) string {
 	return fmt.Sprintf("[%s] %s", ShortDate(m), m.Astro)
+}
+
+func CurrentWeather(m Meteo) string {
+	return fmt.Sprintf("[%s] %s", ShortDate(m), m.Observation)
 }

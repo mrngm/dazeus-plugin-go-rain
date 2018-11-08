@@ -75,6 +75,28 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	_, err = dz.SubscribeCommand("weer", dazeus.NewUniversalScope(), func(ev dazeus.Event) {
+		f, err := GetMeteo()
+		if err != nil {
+			ev.Reply(fmt.Sprintf("E_OUD: %v", err), true)
+			return
+		}
+		ev.Reply(CurrentWeather(f), true)
+	})
+	if err != nil {
+		panic(err)
+	}
+	_, err = dz.SubscribeCommand("regen", dazeus.NewUniversalScope(), func(ev dazeus.Event) {
+		b, err := GetBuien()
+		if err != nil {
+			ev.Reply(fmt.Sprintf("E_DRUPPEL: %v", err), true)
+			return
+		}
+		ev.Reply(BuienForecast(b), true)
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	listenerr := dz.Listen()
 	panic(listenerr)

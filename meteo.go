@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
 	"strings"
 )
 
@@ -46,7 +46,7 @@ type Moonphase struct {
 
 type Obs struct {
 	WindDirection string  `json:"DDDD"`
-	WindBft float64 `json:"FFFF"`
+	WindBft       float64 `json:"FFFF"`
 	TempFeel      float64 `json:"FEELS_LIKE"`
 	Pressure      float64 `json:"PPPP"`
 	Temp          float64 `json:"TTTT"`
@@ -78,7 +78,9 @@ type Obs struct {
 }
 
 func (o Obs) String() string {
-	return fmt.Sprintf("%0.0f°C, %0.0f %%RH, %.2fhPa, wind: %s kracht %0.0f", o.Temp, o.RelHumidity, o.Pressure, o.WindDirection, o.WindBft)
+	return fmt.Sprintf("(%s) %0.0f°C, %0.0f %%RH, %.2fhPa, wind: %s kracht %0.0f",
+		strings.TrimSuffix(o.DateTime[strings.Index(o.DateTime, "T")+1:], ":00"),
+		o.Temp, o.RelHumidity, o.Pressure, o.WindDirection, o.WindBft)
 }
 
 type Texts struct {
