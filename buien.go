@@ -56,8 +56,11 @@ func BuienForecast(b Buien) string {
 		intensity = fmt.Sprintf("%s%s", intensity, BuiNiveau(l, b.Levels))
 	}
 	d, _ := time.ParseDuration(fmt.Sprintf("%.0fs", b.Delta))
-	return fmt.Sprintf("Vanaf %s, per %.0fmin: %s {_ <= %.1f, . > %.1f, - > %.1f, * > %.1f}mm/u",
-		b.HumanStart, d.Minutes(), intensity, b.Levels.Light, b.Levels.Light, b.Levels.Moderate, b.Levels.Heavy)
+	t, _ := time.Parse("15:04", b.HumanStart)
+	hs, _ := time.ParseDuration(fmt.Sprintf("%.0fs", d.Seconds()*float64(len(b.Rain))))
+	humanStop := t.Add(hs).Format("15:04")
+	return fmt.Sprintf("Vanaf %s, per %.0fmin: %s %s {_ <= %.1f, . > %.1f, - > %.1f, * > %.1f}mm/u",
+		b.HumanStart, d.Minutes(), intensity, humanStop, b.Levels.Light, b.Levels.Light, b.Levels.Moderate, b.Levels.Heavy)
 }
 
 func GetBuien() (Buien, error) {
