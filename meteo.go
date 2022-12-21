@@ -30,7 +30,7 @@ type Astro struct {
 }
 
 func (a Astro) String() string {
-	return fmt.Sprintf("Zon op/neer: %s/%s (daglicht: %sm, %0.0fm t.o.v. vorige week)",
+	return fmt.Sprintf("Zon op/neer: %s/%s (daglicht: %sm, %+0.0fm t.o.v. vorige week)",
 		strings.TrimSuffix(a.Sunrise, ":00"),
 		strings.TrimSuffix(a.Sunset, ":00"),
 		strings.Replace(a.Daylength, ":", "h", 1),
@@ -78,9 +78,9 @@ type Obs struct {
 }
 
 func (o Obs) String() string {
-	return fmt.Sprintf("(%s) %0.0f°C, %0.0f %%RH, %.2fhPa, wind: %s kracht %0.0f",
+	return fmt.Sprintf("(%s) %0.0f°C (feel: %0.0f°C), %0.0f %%RH, %.2fhPa, wind: %s kracht %0.0f",
 		strings.TrimSuffix(o.DateTime[strings.Index(o.DateTime, "T")+1:], ":00"),
-		o.Temp, o.RelHumidity, o.Pressure, o.WindDirection, o.WindBft)
+		o.Temp, o.TempFeel, o.RelHumidity, o.Pressure, o.WindDirection, o.WindBft)
 }
 
 type Texts struct {
@@ -89,9 +89,15 @@ type Texts struct {
 	ForecastText string `json:"ForecastText"`
 }
 
-func GetMeteo() (Meteo, error) {
+func GetMeteo(lat, lon int) (Meteo, error) {
 	var f Meteo
-	url := "https://api.meteoplaza.com/v2/meteo/completelocation/5181.584?lang=nl"
+	if lat == 0 {
+		lat = 5181
+	}
+	if lon == 0 {
+		lon = 584
+	}
+	url := fmt.Sprintf("https://api.meteoplaza.com/v2/meteo/completelocation/%d.%d?lang=nl", lat, lon)
 	resp, err := http.Get(url)
 	if err != nil {
 		return f, err

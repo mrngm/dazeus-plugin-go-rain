@@ -39,28 +39,37 @@ type Buien struct {
 
 func BuiNiveau(l float64, levelSpec Levels) string {
 	switch {
+	// ▁▂▃▄▅▆▇█
 	case l > levelSpec.Heavy:
-		return "*"
+		return "▇"
 	case l > levelSpec.Moderate:
-		return "-"
+		return "▅"
 	case l > levelSpec.Light:
-		return "."
+		return "▃"
 	default:
-		return "_"
+		return "▁"
 	}
 }
 
 func BuienForecast(b Buien) string {
-	intensity := ""
-	for _, l := range b.Rain {
-		intensity = fmt.Sprintf("%s%s", intensity, BuiNiveau(l, b.Levels))
-	}
 	d, _ := time.ParseDuration(fmt.Sprintf("%.0fs", b.Delta))
 	t, _ := time.Parse("15:04", b.HumanStart)
-	hs, _ := time.ParseDuration(fmt.Sprintf("%.0fs", d.Seconds()*float64(len(b.Rain))))
+	middle := d.Seconds() * float64(len(b.Rain)/2)
+	interval := d.Seconds() * float64(len(b.Rain))
+	hm, _ := time.ParseDuration(fmt.Sprintf("%.0fs", middle))
+	hs, _ := time.ParseDuration(fmt.Sprintf("%.0fs", interval))
+	humanMiddle := t.Add(hm).Format("15:04")
 	humanStop := t.Add(hs).Format("15:04")
-	return fmt.Sprintf("Vanaf %s, per %.0fmin: %s %s {_ <= %.1f, . > %.1f, - > %.1f, * > %.1f}mm/u",
-		b.HumanStart, d.Minutes(), intensity, humanStop, b.Levels.Light, b.Levels.Light, b.Levels.Moderate, b.Levels.Heavy)
+
+	intensity := ""
+	for i, l := range b.Rain {
+		if i == len(b.Rain)/2 {
+			intensity = fmt.Sprintf("%s %s ", intensity, humanMiddle)
+		}
+		intensity = fmt.Sprintf("%s%s", intensity, BuiNiveau(l, b.Levels))
+	}
+	return fmt.Sprintf("Per %.0fmin: %s %s %s {▁ <= %.1f, ▃ > %.1f, ▅ > %.1f, ▇ > %.1f}mm/u",
+		d.Minutes(), b.HumanStart, intensity, humanStop, b.Levels.Light, b.Levels.Light, b.Levels.Moderate, b.Levels.Heavy)
 }
 
 func GetBuien() (Buien, error) {
@@ -68,16 +77,16 @@ func GetBuien() (Buien, error) {
 	url := "https://cdn-secure.buienalarm.nl/api/3.4/forecast.php?lat=51.8125626&lon=5.837226399999963&region=nl&unit=mm/u"
 	resp, err := http.Get(url)
 	if err != nil {
-		return b, err
+		return b, fmt.Errorf("http(%d): %v", resp.StatusCode, err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return b, err
+		return b, fmt.Errorf("body(%d): %v", resp.StatusCode, err)
 	}
 
 	if err := json.Unmarshal(body, &b); err != nil {
-		return b, err
+		return b, fmt.Errorf("json(%d): %v", resp.StatusCode, err)
 	}
 
 	return b, nil
